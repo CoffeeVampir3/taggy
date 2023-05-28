@@ -4,7 +4,6 @@ import os
 import csv
 from flask import request, jsonify
 
-
 app = Flask(__name__)
 
 # Setup the upload directory
@@ -41,9 +40,7 @@ def load_csv_files():
 def autocomplete():
     query = request.args.get('q', '')
     if query:
-        print(query)
         suggestions = [tag for tag in csv_tags if tag.startswith(query)]
-        print("banana")
         return jsonify(suggestions[:10])
     else:
         return jsonify([])
