@@ -3,6 +3,8 @@
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
     <head>
         <title>Upload and Display Image</title>
         <style>
@@ -72,6 +74,11 @@
                 border: none; /* Remove the default iframe border */
             }
 
+            #myModal {
+                position: absolute !important; /* or 'fixed', depending on your needs */
+                background-color: aqua;
+            }
+
         </style>
     </head>
     <body>
@@ -106,7 +113,23 @@
             </div>
         </div>
 
-
+        <div id="myModal" class="modal" role="dialog">
+            <div class="modal-dialog">
+        
+                <!-- Modal content-->
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">×</button>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" id="btn-new">New</button>
+                        <button type="button" class="btn btn-default" id="btn-remove">Remove</button>
+                    </div>
+        
+                </div>
+        
+            </div>
+        </div>        
         
         <script>
             // Pass the filenames from Flask to JavaScript
@@ -115,6 +138,7 @@
             document.addEventListener("DOMContentLoaded", function() {
                 var images = document.querySelectorAll("#image-gallery img");
                 var selectedImageContainer = document.querySelector("#selected-image");
+                var itemList = document.querySelector("#item-list");
         
                 images.forEach(function(image) {
                     image.addEventListener("click", function() {
@@ -154,17 +178,25 @@
                 function updateItemList(csvContent) {
                     var itemList = document.querySelector("#item-list");
                     itemList.innerHTML = '';
-
                     var items = csvContent.split(',').map(function(item) {
                         return item.trim();
                     });
 
                     items.forEach(function(item) {
+                        var itemDiv = document.createElement("div");
                         var field = document.createElement("input");
                         field.type = "text";
                         field.className = "editable-field";
                         field.value = item;
-                        itemList.appendChild(field);
+                        itemDiv.appendChild(field);
+                        itemList.appendChild(itemDiv);
+
+                        // Attach double-click event to the div
+                        $(itemDiv).dblclick(function() {
+                            itemList.currentField = field;
+                            $('#edit-item-field').val(item);
+                            $('#myModal').modal('show');
+                        });
                     });
 
                     // Initialize autocomplete for the new fields
@@ -183,6 +215,55 @@
                         }
                     });
                 }
+
+                $('#btn-new').click(function() {
+                    var itemDiv = document.createElement("div");
+                    var field = document.createElement("input");
+                    field.type = "text";
+                    field.className = "editable-field";
+                    itemDiv.appendChild(field);
+                    if(itemList.currentField) {
+                        itemList.insertBefore(itemDiv, itemList.currentField.parentElement.nextSibling);
+                    } else {
+                        itemList.appendChild(itemDiv);
+                    }
+                    // Attach double-click event to the new div
+                    $(itemDiv).dblclick(function() {
+                        itemList.currentField = field;
+                        $('#edit-item-field').val(field.value);
+                        $('#myModal').modal('show');
+                    });
+                    // Initialize autocomplete for the new field
+                    $(field).autocomplete({
+                        source: function(request, response) {
+                            $.ajax({
+                                url: "/autocomplete",
+                                data: { q: request.term },
+                                success: function(data) {
+                                    response(data);
+                                },
+                                error: function(jqXHR, textStatus, errorThrown) {
+                                    console.log("AJAX error:", textStatus);
+                                }
+                            });
+                        }
+                    });
+                });
+
+
+                $('#btn-remove').click(function() {
+                    itemList.currentField.parentElement.remove();
+                });
+
+                $('#myModal').on('show.bs.modal', function (e) {
+                    // Get the position of the current item
+                    var itemPos = $(itemList.currentField.parentElement).offset();
+                    var itemWidth = $(itemList.currentField.parentElement).outerWidth();
+
+                    // Update the modal's position
+                    $(this).css('top', itemPos.top + 'px');
+                    $(this).css('left', (itemPos.left + itemWidth + 1) + 'px');
+                });
 
             });
         </script>
