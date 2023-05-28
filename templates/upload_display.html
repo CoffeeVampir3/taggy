@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <head>
+        <title>Upload and Display Image</title>
+        <style>
+            #content {
+                display: flex;
+                justify-content: space-between;
+            }
+
+            #image-gallery {
+                height: 90vh; 
+                width: 30vw; 
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                grid-gap: 10px;
+                overflow-y: auto;
+            }
+
+            #image-gallery img {
+                width: 100%;
+                height: auto;
+                object-fit: cover;
+            }
+
+            #image-gallery img.selected {
+                border: 3px solid red; 
+            }
+
+            #center-pane {
+                flex-grow: 1;
+                height: 90vh;
+                width: 60vw;
+                display: flex;
+                flex-direction: row;
+            }
+
+            #item-list, #blank-pane {
+                width: 50%;
+                height: 100%;
+                overflow-y: auto;
+            }
+
+            #selected-image {
+                flex-grow: 1;
+                height: 90vh; 
+                width: 30vw;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+
+            #selected-image img {
+                max-width: 100%;
+                max-height: 100%;
+                object-fit: contain; 
+            }
+
+            .editable-field {
+                border: 1px solid #ddd;
+                margin: 5px 0;
+                padding: 10px;
+                width: 100%;
+            }
+
+            #tag-pane {
+                width: 100%;
+                height: 100%;
+                border: none; /* Remove the default iframe border */
+            }
+
+        </style>
+    </head>
+    <body>
+        <h1>Upload and Display Image</h1>
+        <div id="upload-bar">
+            <form method="POST" enctype="multipart/form-data">
+                <input type="file" name="file" multiple>
+                <input type="submit" value="Upload">
+            </form>
+        </div>
+        <div id="content">
+            {% if filenames %}
+                <div id="image-gallery">
+                    {% for filename in filenames %}
+                        {% set txt_filename = filename.rsplit('.', 1)[0] + '.txt' %}
+                        <img src="{{ url_for('static', filename='uploads/' + filename) }}" 
+                            alt="Uploaded Image" 
+                            data-txt-filename="{{ txt_filename }}">
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <div id="center-pane">
+                <div id="item-list">
+                    <!-- this is where the list of editable items will be displayed -->
+                </div>
+                <iframe id="tag-pane" src="/tag-pane">
+                    <!-- this is where the second pane content will be displayed -->
+                </iframe>                
+            </div>
+            <div id="selected-image">
+                <!-- this is where the selected image will be displayed -->
+            </div>
+        </div>
+
+
+        
+        <script>
+            // Pass the filenames from Flask to JavaScript
+            var txtFilenames = {{ txtFilenames|tojson|safe }};
+
+            document.addEventListener("DOMContentLoaded", function() {
+                var images = document.querySelectorAll("#image-gallery img");
+                var selectedImageContainer = document.querySelector("#selected-image");
+        
+                images.forEach(function(image) {
+                    image.addEventListener("click", function() {
+                        images.forEach(function(img) {
+                            img.classList.remove("selected");
+                        });
+        
+                        image.classList.add("selected");
+        
+                        selectedImageContainer.innerHTML = '';
+                        var img = document.createElement("img");
+                        img.src = image.src;
+                        selectedImageContainer.appendChild(img);
+        
+                        // Fetch the text file corresponding to the clicked image
+                        var txtFilename = image.getAttribute('data-txt-filename');
+                        fetch('/file/' + txtFilename)
+                            .then(response => response.text())
+                            .then(text => {
+                                updateItemList(text);
+                            });
+        
+                        // Show the tag pane
+                        document.getElementById('tag-pane').style.display = 'block';
+                    });
+                });
+        
+                // Process each text file
+                txtFilenames.forEach(function(txtFilename) {
+                    fetch('/file/' + txtFilename)
+                        .then(response => response.text())
+                        .then(text => {
+                            updateItemList(text);
+                        });
+                });
+                
+                function updateItemList(csvContent) {
+                    var itemList = document.querySelector("#item-list");
+                    itemList.innerHTML = '';
+
+                    var items = csvContent.split(',').map(function(item) {
+                        return item.trim();
+                    });
+
+                    items.forEach(function(item) {
+                        var field = document.createElement("input");
+                        field.type = "text";
+                        field.className = "editable-field";
+                        field.value = item;
+                        itemList.appendChild(field);
+                    });
+
+                    // Initialize autocomplete for the new fields
+                    $(".editable-field").autocomplete({
+                        source: function(request, response) {
+                            $.ajax({
+                                url: "/autocomplete",
+                                data: { q: request.term },
+                                success: function(data) {
+                                    response(data);
+                                },
+                                error: function(jqXHR, textStatus, errorThrown) {
+                                    console.log("AJAX error:", textStatus);
+                                }
+                            });
+                        }
+                    });
+                }
+
+            });
+        </script>
+        
+    </body>
+</html>
