@@ -3,6 +3,7 @@ from werkzeug.utils import secure_filename
 import os
 import csv
 from flask import request, jsonify
+import atexit
 
 app = Flask(__name__)
 
@@ -76,6 +77,12 @@ def file(filename):
     except IOError:
         return '', 404
 
+def cleanup():
+    for filename in os.listdir(app.config['UPLOAD_FOLDER']):
+        if filename != 'githubmademedothis.txt':
+            os.remove(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+atexit.register(cleanup)
 
 if __name__ == "__main__":
     app.run(debug=True)
