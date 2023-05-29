@@ -1,6 +1,6 @@
 # taggy
 Tag Stable Diffusion stuff
 
-`pip install flask`
-
+Platform agnostic, on any platform:
+`pip install -r requirements.txt`
 `python taggy.py`
