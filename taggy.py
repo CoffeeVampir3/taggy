@@ -42,7 +42,7 @@ def load_csv_files():
             csv_filenames = ["danbooru.csv", "e621.csv"]
             for csv_filename in csv_filenames:
                 try:
-                    with open(os.path.join('./static', csv_filename), newline='') as csvfile:
+                    with open(os.path.join('./static', csv_filename), newline='', encoding='utf-8') as csvfile:
                         reader = csv.reader(csvfile)
                         for row in reader:
                             # Add the first column of each row to the set, replacing underscores with spaces
