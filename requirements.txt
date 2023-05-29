@@ -1,2 +1,2 @@
 Flask==2.3.2
-datrie==0.8.2
+pytrie=0.4.0

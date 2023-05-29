@@ -4,7 +4,7 @@ import os
 import csv
 from flask import request, jsonify
 import atexit
-import datrie
+import pytrie
 from string import ascii_lowercase, digits
 import pickle
 import shutil
@@ -19,12 +19,11 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 @app.route('/tags', methods=['GET'])
 def tags():
     if hasattr(g, "csv_tags"):
-        return jsonify(list(g.csv_tags))
+        return jsonify(list(g.csv_tags.keys()))
     else:
         return jsonify([])
 
 first_request = True
-trie_chars = ascii_lowercase + digits + ' _'
 trie_file = 'tags_trie.pkl'
 
 @app.before_request
@@ -38,7 +37,7 @@ def load_csv_files():
                 csv_tags = pickle.load(f)
         except (FileNotFoundError, IOError):
             print("No tag pickle found, creating tag autocomplete trie database.")
-            csv_tags = datrie.Trie(trie_chars)  # Initialize the Trie
+            csv_tags = pytrie.StringTrie()  # Initialize the Trie
             csv_filenames = ["danbooru.csv", "e621.csv"]
             for csv_filename in csv_filenames:
                 try:
@@ -53,7 +52,6 @@ def load_csv_files():
             with open(trie_file, 'wb') as f:
                 pickle.dump(csv_tags, f)
         first_request = False
-        
 
 @app.route('/save', methods=['POST'])
 def save_files():
@@ -71,7 +69,7 @@ def autocomplete():
     query = request.args.get('q', '').lower().replace('_', ' ')
     if query:
         # Use the Trie's prefix method to get all keys that start with the query
-        suggestions = csv_tags.keys(query)
+        suggestions = [key for key in csv_tags.iterkeys(query)]
         suggestions = suggestions[:10]
         suggestions = [suggestion.replace(' ', '_') for suggestion in suggestions]
         return jsonify(suggestions)
