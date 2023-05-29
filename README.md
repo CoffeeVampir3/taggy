@@ -7,3 +7,5 @@ Platform agnostic, on any platform:
 `pip install -r requirements.txt`
 `python taggy.py`
 
+To use, hit the upload button and upload your tagged data and images, the format is expected to be image_name.jpg and image_name.txt where the .txt file has the wd1.4 tags.
+
