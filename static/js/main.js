@@ -6,22 +6,6 @@ document.addEventListener("DOMContentLoaded", function() {
     var selectedImageContainer = document.querySelector("#selected-image");
     var itemList = document.querySelector("#item-list");
     var saveButton = document.getElementById("btn-save");
-    var newFeatureButton = document.getElementById('btn-new-feature');
-    var contentState = 0;  // 0 means content.html is currently displayed, 1 means content2.html is displayed
-
-    newFeatureButton.addEventListener("click", function() {
-        console.log(contentState)
-        if(contentState == 0) {
-            document.getElementById('tab1').style.display = 'block';
-            document.getElementById('tab2').style.display = 'none';
-            contentState = 1
-        } else {
-            document.getElementById('tab1').style.display = 'none';
-            document.getElementById('tab2').style.display = 'block';
-            contentState = 0
-        }
-
-    });
 
     function writeFile() {
         var selectedImage = document.querySelector("#image-gallery img.selected");
