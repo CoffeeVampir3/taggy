@@ -1,0 +1,85 @@
+#content {
+    background: #212429;
+    display: grid;
+    grid-template-columns: 33.33vw 20vw auto; 
+    overflow: hidden;
+}
+
+#image-gallery, #item-list, #selected-image {
+    border: 3px solid #333;
+    border-radius: 2px;
+    box-sizing: border-box;
+    height: 100%;
+    overflow-y: auto;
+    opacity: 0.5;
+    transition: opacity 0.3s ease;
+}
+
+#image-gallery:hover, #item-list:hover, #selected-image:hover {
+    opacity: 1;
+}
+
+#image-gallery {
+    display: grid;
+    grid-gap: 10px;
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.image-container {
+    padding-bottom: 100%;
+    position: relative;
+    width: 100%;
+}
+
+.image-container img {
+    border-radius: 5px;
+    height: 100%;
+    left: 0;
+    object-fit: contain;
+    position: absolute;
+    top: 0;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.image-container img:hover, .image-container img.selected {
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.05);
+}
+
+#image-gallery img.selected {
+    box-shadow: 0 0 10px rgba(204, 204, 204, 0.5);
+}
+
+#selected-image {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#selected-image img {
+    display: block;
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: contain;
+}
+
+#item-list {
+    padding: 10px;
+    padding-right: 10px;
+}
+
+#modalEditPopup {
+    display: none;
+    position: absolute !important;
+    opacity: .3;
+    transition: opacity 0.3s ease-out;
+}
+
+#modalEditPopup:hover {
+    opacity: 1;
+}
+
+#modalEditPopup.hidden {
+    opacity: 0;
+}

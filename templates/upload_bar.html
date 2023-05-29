@@ -1,0 +1,20 @@
+{% block extra_styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/upload_bar.css') }}">
+{% endblock %}
+
+{% block upload_bar %}
+<div id="upload-bar">
+    <div>
+        <button type="button" id="btn-new-feature">New Feature</button>
+    </div>
+    <div>
+        <form method="POST" enctype="multipart/form-data">
+            <input type="file" name="file" multiple>
+            <input type="submit" value="Upload">
+        </form>
+    </div>
+    <div>
+        <button type="button" id="btn-save">Save</button>
+    </div>
+</div>
+{% endblock %}

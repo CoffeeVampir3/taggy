@@ -1,0 +1,27 @@
+{% block extra_styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/content.css') }}">
+{% endblock %}
+
+{% block content %}
+<div id="content">
+    {% if filenames %}
+        <div id="image-gallery">
+            {% for filename in filenames %}
+                {% set txt_filename = filename.rsplit('.', 1)[0] + '.txt' %}
+                <div class="image-container">
+                    <img src="{{ url_for('static', filename='uploads/' + filename) }}" 
+                        alt="Uploaded Image" 
+                        data-txt-filename="{{ txt_filename }}">
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    <div id="item-list">
+        <!-- this is where the list of editable items will be displayed -->
+    </div>     
+
+    <div id="selected-image">
+        <!-- this is where the selected image will be displayed -->
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+#upload-bar {
+    align-items: center;
+    border-bottom: 1px solid #333;
+    display: flex;
+    justify-content: space-between;
+    padding: 3px;
+    background-color: #2a2e37;
+    border: 1px solid #333;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+    justify-content: space-between;
+    padding: 10px;
+}
+
+#btn-save {
+    background-color: #4CAF50;
+    border: none;
+    border-radius: 5px;
+    color: #fff;
+    cursor: pointer;
+    padding: 10px 20px;
+}
+
+#btn-save:hover {
+    background-color: #45a049;
+}

@@ -9,7 +9,7 @@ from string import ascii_lowercase, digits
 import pickle
 import shutil
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static', template_folder='templates')
 
 # Setup the upload directory
 UPLOAD_FOLDER = './static/uploads'
@@ -116,8 +116,7 @@ def upload_display():
                     image_filenames.append(filename)
                 elif filename.rsplit('.', 1)[1].lower() == 'txt':
                     txt_filenames.append(filename)
-    return render_template('upload_display.html', filenames=image_filenames, txtFilenames=txt_filenames)
-
+    return render_template('index.html', filenames=image_filenames, txtFilenames=txt_filenames)
 
 @app.route('/file/<filename>')
 def file(filename):

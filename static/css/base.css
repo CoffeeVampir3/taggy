@@ -1,0 +1,31 @@
+body {
+    background-color: #181a1b;
+    color: #ffffff;
+    display: grid;
+    font-family: Arial, sans-serif;
+    grid-template-rows: auto 1fr;
+    height: 100vh;
+    margin: 0;
+}
+
+.editable-field {
+    background-color: #4b4f58;
+    border-color: #888;
+    margin: 5px 0;
+    padding: 10px;
+    padding-right: 10px;
+    transition: all 0.3s ease;
+    width: 93%;
+    border-radius: 5px; /* Add rounded corners */
+}
+
+.editable-field:focus {
+    background-color: #4b4f58;
+    border-color: #888;
+    box-shadow: 0 0 10px rgba(204, 204, 204, 0.5);
+    outline: none;
+}
+
+.editable-field::placeholder {
+    color: #aaa;
+}

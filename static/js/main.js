@@ -6,6 +6,22 @@ document.addEventListener("DOMContentLoaded", function() {
     var selectedImageContainer = document.querySelector("#selected-image");
     var itemList = document.querySelector("#item-list");
     var saveButton = document.getElementById("btn-save");
+    var newFeatureButton = document.getElementById('btn-new-feature');
+    var contentState = 0;  // 0 means content.html is currently displayed, 1 means content2.html is displayed
+
+    newFeatureButton.addEventListener("click", function() {
+        console.log(contentState)
+        if(contentState == 0) {
+            document.getElementById('tab1').style.display = 'block';
+            document.getElementById('tab2').style.display = 'none';
+            contentState = 1
+        } else {
+            document.getElementById('tab1').style.display = 'none';
+            document.getElementById('tab2').style.display = 'block';
+            contentState = 0
+        }
+
+    });
 
     function writeFile() {
         var selectedImage = document.querySelector("#image-gallery img.selected");
@@ -16,23 +32,38 @@ document.addEventListener("DOMContentLoaded", function() {
             var newContent = Array.from(itemList.querySelectorAll('.editable-field')).map(function(field) {
                 return field.value;
             }).join(',');
-
+    
             // Send a request to update the .txt file
             var txtFilename = selectedImage.getAttribute('data-txt-filename');
-            fetch('/update-file/' + txtFilename, {
+            return fetch('/update-file/' + txtFilename, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'text/plain'
                 },
                 body: newContent
             });
+        } else {
+            // Resolve immediately if no image is selected
+            return Promise.resolve();
         }
     }
 
     saveButton.addEventListener("click", function() {
-        writeFile();
-        fetch('/save', {
-            method: 'POST',
+        writeFile().then(function() {
+            fetch('/save', {
+                method: 'POST',
+            })
+            .then(function(response) {
+                if (response.ok) {
+                    alert('Dataset copied and saved successfully to outputs folder!');
+                } else {
+                    alert('An error occurred while saving. Please try again.');
+                }
+            })
+            .catch(function(error) {
+                console.error('Error:', error);
+                alert('An error occurred while saving. Please try again.');
+            });
         });
     });
 
@@ -172,6 +203,12 @@ document.addEventListener("DOMContentLoaded", function() {
         if (itemList.currentField) {
             updateModalPosition(itemList.currentField.parentElement);
         }
+    });
+
+    $(document).ready(function() {
+        $('#btn-new-feature').click(function() {
+            $('#content').html('');
+        });
     });
 
 });
