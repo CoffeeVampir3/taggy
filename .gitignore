@@ -1,3 +1,4 @@
 /test/
 /static/uploads/*
 !/static/uploads/githubmademedothis.txt
+tags_trie.pkl

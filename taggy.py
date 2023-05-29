@@ -4,6 +4,9 @@ import os
 import csv
 from flask import request, jsonify
 import atexit
+import datrie
+from string import ascii_lowercase, digits
+import pickle
 
 app = Flask(__name__)
 
@@ -19,30 +22,46 @@ def tags():
     else:
         return jsonify([])
 
-csv_tags = set()
 first_request = True
+trie_chars = ascii_lowercase + digits + ' _'
+trie_file = 'tags_trie.pkl'
+
 @app.before_request
 def load_csv_files():
     global first_request
     if first_request:
-        csv_filenames = ["danbooru.csv", "e621.csv"]
         global csv_tags
-        for csv_filename in csv_filenames:
-            try:
-                with open(os.path.join('./static', csv_filename), newline='') as csvfile:
-                    reader = csv.reader(csvfile)
-                    for row in reader:
-                        csv_tags.add(row[0])  # Add the first column of each row to the set
-            except FileNotFoundError:
-                print(f"{csv_filename} not found.")
-            first_request = False
+        # Try to load the Trie from the pickle file
+        try:
+            with open(trie_file, 'rb') as f:
+                csv_tags = pickle.load(f)
+        except (FileNotFoundError, IOError):
+            print("No tag pickle found, creating tag autocomplete trie database.")
+            csv_tags = datrie.Trie(trie_chars)  # Initialize the Trie
+            csv_filenames = ["danbooru.csv", "e621.csv"]
+            for csv_filename in csv_filenames:
+                try:
+                    with open(os.path.join('./static', csv_filename), newline='') as csvfile:
+                        reader = csv.reader(csvfile)
+                        for row in reader:
+                            # Add the first column of each row to the set, replacing underscores with spaces
+                            csv_tags[row[0].lower().replace('_', ' ')] = True
+                except FileNotFoundError:
+                    print(f"{csv_filename} not found.")
+            # Save the Trie to the pickle file for future use
+            with open(trie_file, 'wb') as f:
+                pickle.dump(csv_tags, f)
+        first_request = False
 
 @app.route('/autocomplete', methods=['GET'])
 def autocomplete():
-    query = request.args.get('q', '')
+    query = request.args.get('q', '').lower().replace('_', ' ')
     if query:
-        suggestions = [tag for tag in csv_tags if tag.startswith(query)]
-        return jsonify(suggestions[:10])
+        # Use the Trie's prefix method to get all keys that start with the query
+        suggestions = csv_tags.keys(query)
+        suggestions = suggestions[:10]
+        suggestions = [suggestion.replace(' ', '_') for suggestion in suggestions]
+        return jsonify(suggestions)
     else:
         return jsonify([])
 
