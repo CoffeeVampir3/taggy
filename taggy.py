@@ -7,6 +7,7 @@ import atexit
 import datrie
 from string import ascii_lowercase, digits
 import pickle
+import shutil
 
 app = Flask(__name__)
 
@@ -52,6 +53,18 @@ def load_csv_files():
             with open(trie_file, 'wb') as f:
                 pickle.dump(csv_tags, f)
         first_request = False
+        
+
+@app.route('/save', methods=['POST'])
+def save_files():
+    # Create outputs directory if it doesn't exist
+    os.makedirs('./outputs', exist_ok=True)
+
+    # Copy files from uploads to outputs
+    for filename in os.listdir('./static/uploads'):
+        shutil.copy(os.path.join('./static/uploads', filename),
+                    os.path.join('./outputs', filename))
+    return '', 200
 
 @app.route('/autocomplete', methods=['GET'])
 def autocomplete():
@@ -64,10 +77,28 @@ def autocomplete():
         return jsonify(suggestions)
     else:
         return jsonify([])
+    
+@app.route('/copy-to-directory', methods=['POST'])
+def copy_to_directory():
+    target_directory = request.json['directory']
+    try:
+        shutil.copytree(app.config['UPLOAD_FOLDER'], target_directory)
+        return '', 200
+    except Exception as e:
+        return str(e), 500
 
 @app.route('/tag-pane')
 def tag_pane():
     return render_template('tag_pane.html')
+
+@app.route('/update-file/<filename>', methods=['POST'])
+def update_file(filename):
+    try:
+        with open(os.path.join(app.config['UPLOAD_FOLDER'], filename), 'w') as file:
+            file.write(request.data.decode('utf-8'))
+            return '', 200
+    except IOError:
+        return '', 404
 
 @app.route('/', methods=['GET', 'POST'])
 def upload_display():
