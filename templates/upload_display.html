@@ -132,27 +132,26 @@
         </div>        
         
         <script>
-            // Pass the filenames from Flask to JavaScript
             var txtFilenames = {{ txtFilenames|tojson|safe }};
 
             document.addEventListener("DOMContentLoaded", function() {
                 var images = document.querySelectorAll("#image-gallery img");
                 var selectedImageContainer = document.querySelector("#selected-image");
                 var itemList = document.querySelector("#item-list");
-        
+
                 images.forEach(function(image) {
                     image.addEventListener("click", function() {
                         images.forEach(function(img) {
                             img.classList.remove("selected");
                         });
-        
+
                         image.classList.add("selected");
-        
+
                         selectedImageContainer.innerHTML = '';
                         var img = document.createElement("img");
                         img.src = image.src;
                         selectedImageContainer.appendChild(img);
-        
+
                         // Fetch the text file corresponding to the clicked image
                         var txtFilename = image.getAttribute('data-txt-filename');
                         fetch('/file/' + txtFilename)
@@ -160,12 +159,12 @@
                             .then(text => {
                                 updateItemList(text);
                             });
-        
+
                         // Show the tag pane
                         document.getElementById('tag-pane').style.display = 'block';
                     });
                 });
-        
+
                 // Process each text file
                 txtFilenames.forEach(function(txtFilename) {
                     fetch('/file/' + txtFilename)
@@ -174,33 +173,9 @@
                             updateItemList(text);
                         });
                 });
-                
-                function updateItemList(csvContent) {
-                    var itemList = document.querySelector("#item-list");
-                    itemList.innerHTML = '';
-                    var items = csvContent.split(',').map(function(item) {
-                        return item.trim();
-                    });
 
-                    items.forEach(function(item) {
-                        var itemDiv = document.createElement("div");
-                        var field = document.createElement("input");
-                        field.type = "text";
-                        field.className = "editable-field";
-                        field.value = item;
-                        itemDiv.appendChild(field);
-                        itemList.appendChild(itemDiv);
-
-                        // Attach double-click event to the div
-                        $(itemDiv).dblclick(function() {
-                            itemList.currentField = field;
-                            $('#edit-item-field').val(item);
-                            $('#myModal').modal('show');
-                        });
-                    });
-
-                    // Initialize autocomplete for the new fields
-                    $(".editable-field").autocomplete({
+                function initializeAutocomplete(selector) {
+                    $(selector).autocomplete({
                         source: function(request, response) {
                             $.ajax({
                                 url: "/autocomplete",
@@ -216,53 +191,73 @@
                     });
                 }
 
-                $('#btn-new').click(function() {
+                function attachFocusBlurEvents(field, itemDiv) {
+                    $(field).focus(function() {
+                        itemList.currentField = field;
+                        $('#edit-item-field').val(field.value);
+                        updateModalPosition(itemDiv);
+                        $('#myModal').modal('show');
+                    });
+
+                    $(field).blur(function() {
+                        itemList.currentField = null;
+                        $('#myModal').modal('hide');
+                    });
+                }
+
+                function createEditableField(item) {
                     var itemDiv = document.createElement("div");
                     var field = document.createElement("input");
                     field.type = "text";
                     field.className = "editable-field";
+                    field.value = item;
                     itemDiv.appendChild(field);
+
+                    // Attach focus and blur events to the field
+                    attachFocusBlurEvents(field, itemDiv);
+
+                    return itemDiv;
+                }
+
+                function updateModalPosition(itemDiv) {
+                    var itemPos = $(itemDiv).offset();
+                    var itemWidth = $(itemDiv).outerWidth();
+                    $('#myModal').css('top', itemPos.top + 'px');
+                    $('#myModal').css('left', (itemPos.left + itemWidth + 1) + 'px');
+                }
+
+                function updateItemList(csvContent) {
+                    var itemList = document.querySelector("#item-list");
+                    itemList.innerHTML = '';
+                    var items = csvContent.split(',').map(function(item) {
+                        return item.trim();
+                    });
+
+                    items.forEach(function(item) {
+                        var itemDiv = createEditableField(item);
+                        itemList.appendChild(itemDiv);
+                    });
+
+                    // Initialize autocomplete for the new fields
+                    initializeAutocomplete(".editable-field");
+                }
+
+                $('#btn-new').click(function() {
+                    var itemDiv = createEditableField('');
                     if(itemList.currentField) {
                         itemList.insertBefore(itemDiv, itemList.currentField.parentElement.nextSibling);
                     } else {
                         itemList.appendChild(itemDiv);
                     }
-                    // Attach double-click event to the new div
-                    $(itemDiv).dblclick(function() {
-                        itemList.currentField = field;
-                        $('#edit-item-field').val(field.value);
-                        $('#myModal').modal('show');
-                    });
+
                     // Initialize autocomplete for the new field
-                    $(field).autocomplete({
-                        source: function(request, response) {
-                            $.ajax({
-                                url: "/autocomplete",
-                                data: { q: request.term },
-                                success: function(data) {
-                                    response(data);
-                                },
-                                error: function(jqXHR, textStatus, errorThrown) {
-                                    console.log("AJAX error:", textStatus);
-                                }
-                            });
-                        }
-                    });
-                });
-
-
-                $('#btn-remove').click(function() {
-                    itemList.currentField.parentElement.remove();
+                    initializeAutocomplete(itemDiv.querySelector(".editable-field"));
                 });
 
                 $('#myModal').on('show.bs.modal', function (e) {
-                    // Get the position of the current item
-                    var itemPos = $(itemList.currentField.parentElement).offset();
-                    var itemWidth = $(itemList.currentField.parentElement).outerWidth();
-
-                    // Update the modal's position
-                    $(this).css('top', itemPos.top + 'px');
-                    $(this).css('left', (itemPos.left + itemWidth + 1) + 'px');
+                    if (itemList.currentField) {
+                        updateModalPosition(itemList.currentField.parentElement);
+                    }
                 });
 
             });
