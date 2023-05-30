@@ -2,4 +2,3 @@
 /static/uploads/*
 tags_trie.pkl
 /outputs/
-/static/tags
