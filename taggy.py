@@ -38,7 +38,7 @@ def load_csv_files():
         except (FileNotFoundError, IOError):
             print("No tag pickle found, creating tag autocomplete trie database.")
             csv_tags = pytrie.StringTrie()  # Initialize the Trie
-            csv_filenames = ["danbooru.csv", "e621.csv"]
+            csv_filenames = []
             for csv_filename in csv_filenames:
                 try:
                     with open(os.path.join('./static', csv_filename), newline='', encoding='utf-8') as csvfile:
