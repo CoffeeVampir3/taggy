@@ -38,16 +38,21 @@ def load_csv_files():
         except (FileNotFoundError, IOError):
             print("No tag pickle found, creating tag autocomplete trie database.")
             csv_tags = pytrie.StringTrie()  # Initialize the Trie
-            csv_filenames = []
-            for csv_filename in csv_filenames:
-                try:
-                    with open(os.path.join('./static', csv_filename), newline='', encoding='utf-8') as csvfile:
-                        reader = csv.reader(csvfile)
-                        for row in reader:
-                            # Add the first column of each row to the set, replacing underscores with spaces
-                            csv_tags[row[0].lower().replace('_', ' ')] = True
-                except FileNotFoundError:
-                    print(f"{csv_filename} not found.")
+
+            # Walk through the directory and get all CSV files
+            for root, dirs, files in os.walk('./static/tags'):
+                for file in files:
+                    if file.endswith('.csv'):
+                        csv_filepath = os.path.join(root, file)
+                        try:
+                            with open(csv_filepath, newline='', encoding='utf-8') as csvfile:
+                                reader = csv.reader(csvfile)
+                                for row in reader:
+                                    # Add the first column of each row to the set, replacing underscores with spaces
+                                    csv_tags[row[0].lower().replace('_', ' ')] = True
+                        except FileNotFoundError:
+                            print(f"{csv_filepath} not found.")
+
             # Save the Trie to the pickle file for future use
             with open(trie_file, 'wb') as f:
                 pickle.dump(csv_tags, f)

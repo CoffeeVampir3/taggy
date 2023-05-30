@@ -2,5 +2,4 @@
 /static/uploads/*
 tags_trie.pkl
 /outputs/
-/static/danbooru.csv
-/static/e621.csv
+/static/tags
